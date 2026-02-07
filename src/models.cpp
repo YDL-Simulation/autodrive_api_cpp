@@ -2,28 +2,13 @@
 
 namespace metacar {
 
-// Helper: get value from json, trying alias first then field name
+// Helper for optional fields: only check alias key
 template <typename T>
-static void get_field(const nlohmann::json &j, const std::string &alias, const std::string &field,
-                      T &out) {
-  if (j.contains(alias)) {
-    j.at(alias).get_to(out);
-  } else if (j.contains(field)) {
-    j.at(field).get_to(out);
-  }
-}
-
-// Helper for optional fields
-template <typename T>
-static void get_optional_field(const nlohmann::json &j, const std::string &alias,
-                               const std::string &field, std::optional<T> &out) {
-  if (j.contains(alias) && !j.at(alias).is_null()) {
-    out = j.at(alias).get<T>();
-  } else if (j.contains(field) && !j.at(field).is_null()) {
-    out = j.at(field).get<T>();
-  } else {
+static void get_optional(const nlohmann::json &j, const std::string &key, std::optional<T> &out) {
+  if (j.contains(key) && !j[key].is_null())
+    out = j[key].get<T>();
+  else
     out = std::nullopt;
-  }
 }
 
 // ── BuildingInfo ─────────────────────────────────────────────────────────────
@@ -38,13 +23,13 @@ void to_json(nlohmann::json &j, const BuildingInfo &v) {
 
 void from_json(const nlohmann::json &j, BuildingInfo &v) {
   j.at("id").get_to(v.id);
-  get_field(j, "displayName", "name", v.name);
-  get_field(j, "posX", "pos_x", v.pos_x);
-  get_field(j, "posY", "pos_y", v.pos_y);
-  get_field(j, "posZ", "pos_z", v.pos_z);
-  get_field(j, "oriX", "ori_x", v.ori_x);
-  get_field(j, "oriY", "ori_y", v.ori_y);
-  get_field(j, "oriZ", "ori_z", v.ori_z);
+  j.at("displayName").get_to(v.name);
+  j.at("posX").get_to(v.pos_x);
+  j.at("posY").get_to(v.pos_y);
+  j.at("posZ").get_to(v.pos_z);
+  j.at("oriX").get_to(v.ori_x);
+  j.at("oriY").get_to(v.ori_y);
+  j.at("oriZ").get_to(v.ori_z);
   j.at("length").get_to(v.length);
   j.at("width").get_to(v.width);
   j.at("height").get_to(v.height);
@@ -63,12 +48,12 @@ void to_json(nlohmann::json &j, const RegionInfo &v) {
 void from_json(const nlohmann::json &j, RegionInfo &v) {
   j.at("id").get_to(v.id);
   j.at("type").get_to(v.type);
-  get_field(j, "posX", "pos_x", v.pos_x);
-  get_field(j, "posY", "pos_y", v.pos_y);
-  get_field(j, "posZ", "pos_z", v.pos_z);
-  get_field(j, "oriX", "ori_x", v.ori_x);
-  get_field(j, "oriY", "ori_y", v.ori_y);
-  get_field(j, "oriZ", "ori_z", v.ori_z);
+  j.at("posX").get_to(v.pos_x);
+  j.at("posY").get_to(v.pos_y);
+  j.at("posZ").get_to(v.pos_z);
+  j.at("oriX").get_to(v.ori_x);
+  j.at("oriY").get_to(v.ori_y);
+  j.at("oriZ").get_to(v.ori_z);
   j.at("length").get_to(v.length);
   j.at("width").get_to(v.width);
 }
@@ -83,8 +68,8 @@ void to_json(nlohmann::json &j, const VLAExtension &v) {
 }
 
 void from_json(const nlohmann::json &j, VLAExtension &v) {
-  get_field(j, "BuildingInfos", "buildings", v.buildings);
-  get_field(j, "Regions", "regions", v.regions);
+  j.at("BuildingInfos").get_to(v.buildings);
+  j.at("Regions").get_to(v.regions);
 }
 
 // ── VLATextOutput ────────────────────────────────────────────────────────────
@@ -99,10 +84,10 @@ void to_json(nlohmann::json &j, const VLATextOutput &v) {
 }
 
 void from_json(const nlohmann::json &j, VLATextOutput &v) {
-  get_field(j, "OcrText", "ocr_text", v.ocr_text);
-  get_field(j, "TimeText", "time_phrase", v.time_phrase);
-  get_field(j, "LocationText", "location_phrase", v.location_phrase);
-  get_field(j, "ActionText", "action_phrase", v.action_phrase);
+  j.at("OcrText").get_to(v.ocr_text);
+  j.at("TimeText").get_to(v.time_phrase);
+  j.at("LocationText").get_to(v.location_phrase);
+  j.at("ActionText").get_to(v.action_phrase);
 }
 
 // ── FunctionZoneViolation ────────────────────────────────────────────────────
@@ -115,18 +100,8 @@ void to_json(nlohmann::json &j, const FunctionZoneViolation &v) {
 }
 
 void from_json(const nlohmann::json &j, FunctionZoneViolation &v) {
-  get_field(j, "ruleCode", "rule_code", v.rule_code);
-  get_field(j, "stickerIds", "sticker_ids", v.sticker_ids);
-}
-
-// ── FunctionZoneResult ───────────────────────────────────────────────────────
-
-void to_json(nlohmann::json &j, const FunctionZoneResult &v) {
-  j = nlohmann::json{{"violations", v.violations}};
-}
-
-void from_json(const nlohmann::json &j, FunctionZoneResult &v) {
-  j.at("violations").get_to(v.violations);
+  j.at("ruleCode").get_to(v.rule_code);
+  j.at("stickerIds").get_to(v.sticker_ids);
 }
 
 // ── ParkingResult ────────────────────────────────────────────────────────────
@@ -136,56 +111,51 @@ void to_json(nlohmann::json &j, const ParkingResult &v) {
 }
 
 void from_json(const nlohmann::json &j, ParkingResult &v) {
-  get_field(j, "violatingStickerIds", "violating_sticker_ids", v.violating_sticker_ids);
+  j.at("violatingStickerIds").get_to(v.violating_sticker_ids);
 }
 
 // ── VLAExtensionOutput ───────────────────────────────────────────────────────
 
 void to_json(nlohmann::json &j, const VLAExtensionOutput &v) {
   j = nlohmann::json{};
-  if (v.text_info) {
+  if (v.text_info)
     j["TextInfo"] = *v.text_info;
-  } else {
+  else
     j["TextInfo"] = nullptr;
-  }
-  if (v.function_zone_result) {
+  if (v.function_zone_result)
     j["FunctionZoneResult"] = *v.function_zone_result;
-  } else {
+  else
     j["FunctionZoneResult"] = nullptr;
-  }
-  if (v.parking_result) {
+  if (v.parking_result)
     j["ParkingResult"] = *v.parking_result;
-  } else {
+  else
     j["ParkingResult"] = nullptr;
-  }
 }
 
 void from_json(const nlohmann::json &j, VLAExtensionOutput &v) {
-  get_optional_field(j, "TextInfo", "text_info", v.text_info);
-  get_optional_field(j, "FunctionZoneResult", "function_zone_result", v.function_zone_result);
-  get_optional_field(j, "ParkingResult", "parking_result", v.parking_result);
+  get_optional(j, "TextInfo", v.text_info);
+  get_optional(j, "FunctionZoneResult", v.function_zone_result);
+  get_optional(j, "ParkingResult", v.parking_result);
 }
 
 // ── SubSceneInfo ─────────────────────────────────────────────────────────────
 
 void to_json(nlohmann::json &j, const SubSceneInfo &v) {
   j = nlohmann::json{{"SubSceneName", v.name}};
-  if (v.start_point) {
+  if (v.start_point)
     j["StartPoint"] = *v.start_point;
-  } else {
+  else
     j["StartPoint"] = nullptr;
-  }
-  if (v.end_point) {
+  if (v.end_point)
     j["EndPoint"] = *v.end_point;
-  } else {
+  else
     j["EndPoint"] = nullptr;
-  }
 }
 
 void from_json(const nlohmann::json &j, SubSceneInfo &v) {
-  get_field(j, "SubSceneName", "name", v.name);
-  get_optional_field(j, "StartPoint", "start_point", v.start_point);
-  get_optional_field(j, "EndPoint", "end_point", v.end_point);
+  j.at("SubSceneName").get_to(v.name);
+  get_optional(j, "StartPoint", v.start_point);
+  get_optional(j, "EndPoint", v.end_point);
 }
 
 // ── MapConfig ────────────────────────────────────────────────────────────────
@@ -203,7 +173,7 @@ void from_json(const nlohmann::json &j, MapConfig &v) {
   j.at("path").get_to(v.path);
   j.at("route").get_to(v.route);
   j.at("map").get_to(v.map);
-  get_field(j, "SubSceneInfo", "sub_scenes", v.sub_scenes);
+  j.at("SubSceneInfo").get_to(v.sub_scenes);
 }
 
 // ── BorderInfo ───────────────────────────────────────────────────────────────
@@ -216,8 +186,8 @@ void to_json(nlohmann::json &j, const BorderInfo &v) {
 }
 
 void from_json(const nlohmann::json &j, BorderInfo &v) {
-  get_field(j, "borderType", "type", v.type);
-  get_field(j, "pathPoint", "path_points", v.path_points);
+  j.at("borderType").get_to(v.type);
+  j.at("pathPoint").get_to(v.path_points);
 }
 
 // ── LaneInfo ─────────────────────────────────────────────────────────────────
@@ -236,12 +206,12 @@ void to_json(nlohmann::json &j, const LaneInfo &v) {
 
 void from_json(const nlohmann::json &j, LaneInfo &v) {
   j.at("id").get_to(v.id);
-  get_field(j, "LeftBorder", "left_border", v.left_border);
-  get_field(j, "RightBorder", "right_border", v.right_border);
-  get_field(j, "leftLane", "left_lane_id", v.left_lane_id);
-  get_field(j, "rightLane", "right_lane_id", v.right_lane_id);
+  j.at("LeftBorder").get_to(v.left_border);
+  j.at("RightBorder").get_to(v.right_border);
+  j.at("leftLane").get_to(v.left_lane_id);
+  j.at("rightLane").get_to(v.right_lane_id);
   j.at("width").get_to(v.width);
-  get_field(j, "pathPoint", "path_points", v.path_points);
+  j.at("pathPoint").get_to(v.path_points);
 }
 
 // ── RoadInfo ─────────────────────────────────────────────────────────────────
@@ -262,14 +232,14 @@ void to_json(nlohmann::json &j, const RoadInfo &v) {
 
 void from_json(const nlohmann::json &j, RoadInfo &v) {
   j.at("id").get_to(v.id);
-  get_field(j, "beginPos", "begin_pos", v.begin_pos);
-  get_field(j, "endPos", "end_pos", v.end_pos);
-  get_field(j, "drivingType", "driving_type", v.driving_type);
-  get_field(j, "trafficSign", "traffic_sign_type", v.traffic_sign_type);
-  get_field(j, "stopLine", "stop_line", v.stop_line);
-  get_field(j, "predecessor", "predecessor_ids", v.predecessor_ids);
-  get_field(j, "successor", "successor_ids", v.successor_ids);
-  get_field(j, "laneData", "lanes", v.lanes);
+  j.at("beginPos").get_to(v.begin_pos);
+  j.at("endPos").get_to(v.end_pos);
+  j.at("drivingType").get_to(v.driving_type);
+  j.at("trafficSign").get_to(v.traffic_sign_type);
+  j.at("stopLine").get_to(v.stop_line);
+  j.at("predecessor").get_to(v.predecessor_ids);
+  j.at("successor").get_to(v.successor_ids);
+  j.at("laneData").get_to(v.lanes);
 }
 
 // ── SceneStaticData ──────────────────────────────────────────────────────────
@@ -280,18 +250,17 @@ void to_json(nlohmann::json &j, const SceneStaticData &v) {
       {"roads", v.roads},
       {"sub_scenes", v.sub_scenes},
   };
-  if (v.vla_extension) {
+  if (v.vla_extension)
     j["vla_extension"] = *v.vla_extension;
-  } else {
+  else
     j["vla_extension"] = nullptr;
-  }
 }
 
 void from_json(const nlohmann::json &j, SceneStaticData &v) {
   j.at("route").get_to(v.route);
   j.at("roads").get_to(v.roads);
   j.at("sub_scenes").get_to(v.sub_scenes);
-  get_optional_field(j, "vla_extension", "vla_extension", v.vla_extension);
+  get_optional(j, "vla_extension", v.vla_extension);
 }
 
 // ── PoseGnss ─────────────────────────────────────────────────────────────────
@@ -304,21 +273,20 @@ void to_json(nlohmann::json &j, const PoseGnss &v) {
 }
 
 void from_json(const nlohmann::json &j, PoseGnss &v) {
-  get_field(j, "posX", "pos_x", v.pos_x);
-  get_field(j, "posY", "pos_y", v.pos_y);
-  get_field(j, "posZ", "pos_z", v.pos_z);
-  get_field(j, "velX", "vel_x", v.vel_x);
-  get_field(j, "velY", "vel_y", v.vel_y);
-  get_field(j, "velZ", "vel_z", v.vel_z);
-  get_field(j, "oriX", "ori_x", v.ori_x);
-  get_field(j, "oriY", "ori_y", v.ori_y);
-  get_field(j, "oriZ", "ori_z", v.ori_z);
+  j.at("posX").get_to(v.pos_x);
+  j.at("posY").get_to(v.pos_y);
+  j.at("posZ").get_to(v.pos_z);
+  j.at("velX").get_to(v.vel_x);
+  j.at("velY").get_to(v.vel_y);
+  j.at("velZ").get_to(v.vel_z);
+  j.at("oriX").get_to(v.ori_x);
+  j.at("oriY").get_to(v.ori_y);
+  j.at("oriZ").get_to(v.ori_z);
 }
 
 // ── EulerAngle ───────────────────────────────────────────────────────────────
 
 void to_json(nlohmann::json &j, const EulerAngle &v) {
-  // Python uses lowercase "orix", "oriy", "oriz" for compatibility
   j = nlohmann::json{
       {"orix", v.ori_x},
       {"oriy", v.ori_y},
@@ -327,9 +295,9 @@ void to_json(nlohmann::json &j, const EulerAngle &v) {
 }
 
 void from_json(const nlohmann::json &j, EulerAngle &v) {
-  get_field(j, "orix", "ori_x", v.ori_x);
-  get_field(j, "oriy", "ori_y", v.ori_y);
-  get_field(j, "oriz", "ori_z", v.ori_z);
+  j.at("orix").get_to(v.ori_x);
+  j.at("oriy").get_to(v.ori_y);
+  j.at("oriz").get_to(v.ori_z);
 }
 
 // ── MainVehicleInfo ──────────────────────────────────────────────────────────
@@ -354,7 +322,7 @@ void to_json(nlohmann::json &j, const MainVehicleInfo &v) {
 }
 
 void from_json(const nlohmann::json &j, MainVehicleInfo &v) {
-  get_field(j, "mainVehicleId", "id", v.id);
+  j.at("mainVehicleId").get_to(v.id);
   j.at("speed").get_to(v.speed);
   j.at("gear").get_to(v.gear);
   j.at("throttle").get_to(v.throttle);
@@ -363,11 +331,11 @@ void from_json(const nlohmann::json &j, MainVehicleInfo &v) {
   j.at("length").get_to(v.length);
   j.at("width").get_to(v.width);
   j.at("height").get_to(v.height);
-  get_field(j, "Signal_Light_LeftBlinker", "left_blinker_on", v.left_blinker_on);
-  get_field(j, "Signal_Light_RightBlinker", "right_blinker_on", v.right_blinker_on);
-  get_field(j, "Signal_Light_DoubleFlash", "hazard_lights_on", v.hazard_lights_on);
-  get_field(j, "Signal_Light_BrakeLight", "brake_lights_on", v.brake_lights_on);
-  get_field(j, "Signal_Light_FrontLight", "headlights_on", v.headlights_on);
+  j.at("Signal_Light_LeftBlinker").get_to(v.left_blinker_on);
+  j.at("Signal_Light_RightBlinker").get_to(v.right_blinker_on);
+  j.at("Signal_Light_DoubleFlash").get_to(v.hazard_lights_on);
+  j.at("Signal_Light_BrakeLight").get_to(v.brake_lights_on);
+  j.at("Signal_Light_FrontLight").get_to(v.headlights_on);
 }
 
 // ── CameraInfo ───────────────────────────────────────────────────────────────
@@ -385,13 +353,13 @@ void to_json(nlohmann::json &j, const CameraInfo &v) {
 }
 
 void from_json(const nlohmann::json &j, CameraInfo &v) {
-  get_field(j, "Id", "id", v.id);
-  get_field(j, "Position", "position", v.position);
-  get_field(j, "Angle", "orientation", v.orientation);
-  get_field(j, "Fov", "fov", v.fov);
-  get_field(j, "IntrinsicMatrix", "intrinsic_matrix", v.intrinsic_matrix);
-  get_field(j, "ImageW", "image_width", v.image_width);
-  get_field(j, "ImageH", "image_height", v.image_height);
+  j.at("Id").get_to(v.id);
+  j.at("Position").get_to(v.position);
+  j.at("Angle").get_to(v.orientation);
+  j.at("Fov").get_to(v.fov);
+  j.at("IntrinsicMatrix").get_to(v.intrinsic_matrix);
+  j.at("ImageW").get_to(v.image_width);
+  j.at("ImageH").get_to(v.image_height);
 }
 
 // ── SensorInfo ───────────────────────────────────────────────────────────────
@@ -404,8 +372,8 @@ void to_json(nlohmann::json &j, const SensorInfo &v) {
 }
 
 void from_json(const nlohmann::json &j, SensorInfo &v) {
-  get_field(j, "egoRGBCams", "ego_rgb_cams", v.ego_rgb_cams);
-  get_field(j, "v2xCams", "v2x_cams", v.v2x_cams);
+  j.at("egoRGBCams").get_to(v.ego_rgb_cams);
+  j.at("v2xCams").get_to(v.v2x_cams);
 }
 
 // ── ObstacleInfo ─────────────────────────────────────────────────────────────
@@ -417,29 +385,28 @@ void to_json(nlohmann::json &j, const ObstacleInfo &v) {
       {"oriX", v.ori_x},  {"oriY", v.ori_y},    {"oriZ", v.ori_z}, {"length", v.length},
       {"width", v.width}, {"height", v.height},
   };
-  if (v.extra_info) {
+  if (v.extra_info)
     j["RedundantValue"] = *v.extra_info;
-  } else {
+  else
     j["RedundantValue"] = nullptr;
-  }
 }
 
 void from_json(const nlohmann::json &j, ObstacleInfo &v) {
   j.at("id").get_to(v.id);
   j.at("type").get_to(v.type);
-  get_field(j, "posX", "pos_x", v.pos_x);
-  get_field(j, "posY", "pos_y", v.pos_y);
-  get_field(j, "posZ", "pos_z", v.pos_z);
-  get_field(j, "velX", "vel_x", v.vel_x);
-  get_field(j, "velY", "vel_y", v.vel_y);
-  get_field(j, "velZ", "vel_z", v.vel_z);
-  get_field(j, "oriX", "ori_x", v.ori_x);
-  get_field(j, "oriY", "ori_y", v.ori_y);
-  get_field(j, "oriZ", "ori_z", v.ori_z);
+  j.at("posX").get_to(v.pos_x);
+  j.at("posY").get_to(v.pos_y);
+  j.at("posZ").get_to(v.pos_z);
+  j.at("velX").get_to(v.vel_x);
+  j.at("velY").get_to(v.vel_y);
+  j.at("velZ").get_to(v.vel_z);
+  j.at("oriX").get_to(v.ori_x);
+  j.at("oriY").get_to(v.ori_y);
+  j.at("oriZ").get_to(v.ori_z);
   j.at("length").get_to(v.length);
   j.at("width").get_to(v.width);
   j.at("height").get_to(v.height);
-  get_optional_field(j, "RedundantValue", "extra_info", v.extra_info);
+  get_optional(j, "RedundantValue", v.extra_info);
 }
 
 // ── TrafficLightInfo ─────────────────────────────────────────────────────────
@@ -460,14 +427,14 @@ void to_json(nlohmann::json &j, const TrafficLightInfo &v) {
 
 void from_json(const nlohmann::json &j, TrafficLightInfo &v) {
   j.at("id").get_to(v.id);
-  get_field(j, "roadId", "road_id", v.road_id);
-  get_field(j, "Position", "position", v.position);
-  get_field(j, "turnLeftState", "left_state", v.left_state);
-  get_field(j, "turnLeftRemainder", "left_remaining_time", v.left_remaining_time);
-  get_field(j, "turnRightState", "right_state", v.right_state);
-  get_field(j, "turnRightRemainder", "right_remaining_time", v.right_remaining_time);
-  get_field(j, "straightState", "straight_state", v.straight_state);
-  get_field(j, "straightRemainder", "straight_remaining_time", v.straight_remaining_time);
+  j.at("roadId").get_to(v.road_id);
+  j.at("Position").get_to(v.position);
+  j.at("turnLeftState").get_to(v.left_state);
+  j.at("turnLeftRemainder").get_to(v.left_remaining_time);
+  j.at("turnRightState").get_to(v.right_state);
+  j.at("turnRightRemainder").get_to(v.right_remaining_time);
+  j.at("straightState").get_to(v.straight_state);
+  j.at("straightRemainder").get_to(v.straight_remaining_time);
 }
 
 // ── TrafficLightGroupInfo ────────────────────────────────────────────────────
@@ -481,7 +448,7 @@ void to_json(nlohmann::json &j, const TrafficLightGroupInfo &v) {
 
 void from_json(const nlohmann::json &j, TrafficLightGroupInfo &v) {
   j.at("id").get_to(v.id);
-  get_field(j, "trafficLightState", "traffic_lights", v.traffic_lights);
+  j.at("trafficLightState").get_to(v.traffic_lights);
 }
 
 // ── SceneStatus ──────────────────────────────────────────────────────────────
@@ -492,18 +459,17 @@ void to_json(nlohmann::json &j, const SceneStatus &v) {
       {"UsedTime", v.used_time},
       {"TimeLimit", v.time_limit},
   };
-  if (v.end_point) {
+  if (v.end_point)
     j["EndPoint"] = *v.end_point;
-  } else {
+  else
     j["EndPoint"] = nullptr;
-  }
 }
 
 void from_json(const nlohmann::json &j, SceneStatus &v) {
-  get_field(j, "SubSceneName", "sub_scene_name", v.sub_scene_name);
-  get_field(j, "UsedTime", "used_time", v.used_time);
-  get_field(j, "TimeLimit", "time_limit", v.time_limit);
-  get_optional_field(j, "EndPoint", "end_point", v.end_point);
+  j.at("SubSceneName").get_to(v.sub_scene_name);
+  j.at("UsedTime").get_to(v.used_time);
+  j.at("TimeLimit").get_to(v.time_limit);
+  get_optional(j, "EndPoint", v.end_point);
 }
 
 // ── SimCarMsg ────────────────────────────────────────────────────────────────
@@ -518,39 +484,13 @@ void to_json(nlohmann::json &j, const SimCarMsg &v) {
 }
 
 void from_json(const nlohmann::json &j, SimCarMsg &v) {
-  get_field(j, "Trajectory", "trajectory", v.trajectory);
-  get_field(j, "PoseGnss", "pose_gnss", v.pose_gnss);
-  get_field(j, "DataMainVehicle", "main_vehicle", v.main_vehicle);
-  get_field(j, "Sensor", "sensor", v.sensor);
-  get_field(j, "ObstacleEntryList", "obstacles", v.obstacles);
-  get_field(j, "TrafficLightStateLists", "traffic_light_groups", v.traffic_light_groups);
-  get_field(j, "SceneStatus", "scene_status", v.scene_status);
-}
-
-// ── VehicleControl ───────────────────────────────────────────────────────────
-
-void to_json(nlohmann::json &j, const VehicleControl &v) {
-  j = nlohmann::json{
-      {"throttle", v.throttle},
-      {"brake", v.brake},
-      {"steering", v.steering},
-      {"gear", v.gear},
-      {"left_blinker_on", v.left_blinker_on},
-      {"right_blinker_on", v.right_blinker_on},
-      {"hazard_lights_on", v.hazard_lights_on},
-      {"headlights_on", v.headlights_on},
-  };
-}
-
-void from_json(const nlohmann::json &j, VehicleControl &v) {
-  j.at("throttle").get_to(v.throttle);
-  j.at("brake").get_to(v.brake);
-  j.at("steering").get_to(v.steering);
-  j.at("gear").get_to(v.gear);
-  j.at("left_blinker_on").get_to(v.left_blinker_on);
-  j.at("right_blinker_on").get_to(v.right_blinker_on);
-  j.at("hazard_lights_on").get_to(v.hazard_lights_on);
-  j.at("headlights_on").get_to(v.headlights_on);
+  j.at("Trajectory").get_to(v.trajectory);
+  j.at("PoseGnss").get_to(v.pose_gnss);
+  j.at("DataMainVehicle").get_to(v.main_vehicle);
+  j.at("Sensor").get_to(v.sensor);
+  j.at("ObstacleEntryList").get_to(v.obstacles);
+  j.at("TrafficLightStateLists").get_to(v.traffic_light_groups);
+  j.at("SceneStatus").get_to(v.scene_status);
 }
 
 // ── VehicleControlDTO ────────────────────────────────────────────────────────
@@ -590,12 +530,12 @@ void from_json(const nlohmann::json &j, VehicleControlDTO &v) {
   j.at("brake").get_to(v.brake);
   j.at("steering").get_to(v.steering);
   j.at("gear").get_to(v.gear);
-  get_field(j, "Signal_Light_LeftBlinker", "left_blinker_on", v.left_blinker_on);
-  get_field(j, "Signal_Light_RightBlinker", "right_blinker_on", v.right_blinker_on);
-  get_field(j, "Signal_Light_DoubleFlash", "hazard_lights_on", v.hazard_lights_on);
-  get_field(j, "Signal_Light_FrontLight", "headlights_on", v.headlights_on);
-  get_field(j, "movetostart", "move_to_start", v.move_to_start);
-  get_field(j, "movetoend", "move_to_end", v.move_to_end);
+  j.at("Signal_Light_LeftBlinker").get_to(v.left_blinker_on);
+  j.at("Signal_Light_RightBlinker").get_to(v.right_blinker_on);
+  j.at("Signal_Light_DoubleFlash").get_to(v.hazard_lights_on);
+  j.at("Signal_Light_FrontLight").get_to(v.headlights_on);
+  j.at("movetostart").get_to(v.move_to_start);
+  j.at("movetoend").get_to(v.move_to_end);
 }
 
 // ── SimCarMsgOutput ──────────────────────────────────────────────────────────
@@ -604,16 +544,15 @@ void to_json(nlohmann::json &j, const SimCarMsgOutput &v) {
   j = nlohmann::json{
       {"VehicleControl", v.vehicle_control},
   };
-  if (v.vla_extension) {
+  if (v.vla_extension)
     j["VLAExtension"] = *v.vla_extension;
-  } else {
+  else
     j["VLAExtension"] = nullptr;
-  }
 }
 
 void from_json(const nlohmann::json &j, SimCarMsgOutput &v) {
-  get_field(j, "VehicleControl", "vehicle_control", v.vehicle_control);
-  get_optional_field(j, "VLAExtension", "vla_extension", v.vla_extension);
+  j.at("VehicleControl").get_to(v.vehicle_control);
+  get_optional(j, "VLAExtension", v.vla_extension);
 }
 
 // ── Protocol messages ────────────────────────────────────────────────────────
@@ -623,22 +562,17 @@ void to_json(nlohmann::json &j, const Code1 &v) {
       {"code", v.code},
       {"MapInfo", v.map_info},
   };
-  if (v.vla_extension) {
+  if (v.vla_extension)
     j["VLAExtension"] = *v.vla_extension;
-  } else {
+  else
     j["VLAExtension"] = nullptr;
-  }
 }
 
 void from_json(const nlohmann::json &j, Code1 &v) {
   j.at("code").get_to(v.code);
-  get_field(j, "MapInfo", "map_info", v.map_info);
-  get_optional_field(j, "VLAExtension", "vla_extension", v.vla_extension);
+  j.at("MapInfo").get_to(v.map_info);
+  get_optional(j, "VLAExtension", v.vla_extension);
 }
-
-void to_json(nlohmann::json &j, const Code2 &v) { j = nlohmann::json{{"code", v.code}}; }
-
-void from_json(const nlohmann::json &j, Code2 &v) { j.at("code").get_to(v.code); }
 
 void to_json(nlohmann::json &j, const Code3 &v) {
   j = nlohmann::json{
@@ -649,7 +583,7 @@ void to_json(nlohmann::json &j, const Code3 &v) {
 
 void from_json(const nlohmann::json &j, Code3 &v) {
   j.at("code").get_to(v.code);
-  get_field(j, "SimCarMsg", "sim_car_msg", v.sim_car_msg);
+  j.at("SimCarMsg").get_to(v.sim_car_msg);
 }
 
 void to_json(nlohmann::json &j, const Code4 &v) {
@@ -661,11 +595,7 @@ void to_json(nlohmann::json &j, const Code4 &v) {
 
 void from_json(const nlohmann::json &j, Code4 &v) {
   j.at("code").get_to(v.code);
-  get_field(j, "SimCarMsg", "sim_car_msg", v.sim_car_msg);
+  j.at("SimCarMsg").get_to(v.sim_car_msg);
 }
-
-void to_json(nlohmann::json &j, const Code5 &v) { j = nlohmann::json{{"code", v.code}}; }
-
-void from_json(const nlohmann::json &j, Code5 &v) { j.at("code").get_to(v.code); }
 
 } // namespace metacar

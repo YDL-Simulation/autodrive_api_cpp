@@ -202,8 +202,7 @@ struct FunctionZoneResult {
   std::vector<FunctionZoneViolation> violations;
 };
 
-void to_json(nlohmann::json &j, const FunctionZoneResult &v);
-void from_json(const nlohmann::json &j, FunctionZoneResult &v);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(FunctionZoneResult, violations)
 
 struct ParkingResult {
   std::vector<std::string> violating_sticker_ids;
@@ -435,8 +434,9 @@ struct VehicleControl {
   bool headlights_on = false;
 };
 
-void to_json(nlohmann::json &j, const VehicleControl &v);
-void from_json(const nlohmann::json &j, VehicleControl &v);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(VehicleControl, throttle, brake, steering, gear,
+                                                left_blinker_on, right_blinker_on,
+                                                hazard_lights_on, headlights_on)
 
 // Internal DTO used for wire format
 struct VehicleControlDTO {
@@ -482,8 +482,7 @@ struct Code2 {
   int code = 2;
 };
 
-void to_json(nlohmann::json &j, const Code2 &v);
-void from_json(const nlohmann::json &j, Code2 &v);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Code2, code)
 
 struct Code3 {
   int code = 3;
@@ -505,7 +504,6 @@ struct Code5 {
   int code = 5;
 };
 
-void to_json(nlohmann::json &j, const Code5 &v);
-void from_json(const nlohmann::json &j, Code5 &v);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Code5, code)
 
 } // namespace metacar

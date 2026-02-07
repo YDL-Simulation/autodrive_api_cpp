@@ -33,8 +33,7 @@ struct Vector2 {
   Vector2 normalized() const;
 };
 
-void to_json(nlohmann::json &j, const Vector2 &v);
-void from_json(const nlohmann::json &j, Vector2 &v);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Vector2, x, y)
 
 struct Vector3 {
   double x = 0.0;
@@ -65,7 +64,6 @@ struct Vector3 {
   Vector3 normalized() const;
 };
 
-void to_json(nlohmann::json &j, const Vector3 &v);
-void from_json(const nlohmann::json &j, Vector3 &v);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Vector3, x, y, z)
 
 } // namespace metacar
