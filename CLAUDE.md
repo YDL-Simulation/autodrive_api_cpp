@@ -2,7 +2,7 @@
 
 ## 项目概述
 
-metacar — 自动驾驶仿真 C++ API 库，为 YDL 仿真平台提供场景管理与车辆控制接口。
+metacar — 自动驾驶仿真 C++ API 库，为元动力仿真平台提供场景管理与车辆控制接口。
 
 本项目是 Python API (`../autodrive_api_python`) 的 C++ 移植版，去掉了视觉处理部分。面向大学本科生，配合示例仓库 (`../autodrive_examples_cpp`) 使用。学生通过克隆示例仓库开始开发，不应接触本 API 源码。
 
