@@ -5,21 +5,28 @@
 | 要求 | 说明 |
 |------|------|
 | C++ 标准 | C++20 |
-| CMake | 3.20 或更高版本 |
+| CMake | 3.14 或更高版本 |
 | 编译器 | MSVC 19.29+（VS 2019+）或 GCC 10+ / Clang 12+ |
 | 平台 | Windows 10/11 或 Linux |
 
-## 构建 metacar 库
+## 快速开始（推荐）
 
-metacar 提供了 CMake Presets，可以一键完成配置和构建。
+最快的方式是直接克隆**示例仓库**，它会通过 CMake FetchContent 自动拉取 metacar 库，无需手动下载任何依赖：
+
+```bash
+git clone https://github.com/YDL-Simulation/autodrive_examples_cpp.git
+cd autodrive_examples_cpp
+```
+
+构建：
 
 === "Windows"
 
     在 **Visual Studio Developer Terminal** 中执行：
 
     ```bash
-    cmake --preset win-debug
-    cmake --build --preset win-debug
+    cmake -B build
+    cmake --build build
     ```
 
     !!! note "为什么要用 Developer Terminal？"
@@ -28,51 +35,45 @@ metacar 提供了 CMake Presets，可以一键完成配置和构建。
 === "Linux"
 
     ```bash
-    cmake --preset linux-debug
-    cmake --build --preset linux-debug
+    cmake -B build
+    cmake --build build
     ```
 
-构建产物为**静态库**（`metacar.lib` / `libmetacar.a`）。
+构建完成后，可执行文件位于 `build/src/` 目录。运行前请先启动仿真器。
 
-## 在你的项目中使用 metacar
+!!! tip "项目结构"
+    项目结构很简单，直接在 `src/main.cpp` 中编写你的代码：
 
-### CMake 集成
+    ```
+    autodrive_examples_cpp/
+      CMakeLists.txt      ← 顶层配置，自动拉取 metacar
+      src/
+        CMakeLists.txt    ← 构建配置
+        main.cpp          ← 在这里编写你的代码
+    ```
 
-在你的项目的 `CMakeLists.txt` 中添加：
+---
+
+## 手动集成（进阶）
+
+如果你已有自己的 CMake 项目，可以通过 FetchContent 引入 metacar：
 
 ```cmake
-find_package(metacar REQUIRED)
-target_link_libraries(your_app PRIVATE metacar::metacar)
+include(FetchContent)
+FetchContent_Declare(
+  metacar
+  GIT_REPOSITORY https://github.com/YDL-Simulation/autodrive_api_cpp.git
+  GIT_TAG master
+)
+FetchContent_MakeAvailable(metacar)
+
+target_link_libraries(your_app PRIVATE metacar)
 ```
 
 然后在代码中 include 总入口头文件即可：
 
 ```cpp
 #include "metacar/metacar.hpp"
-```
-
-### 设置 CMAKE_PREFIX_PATH
-
-你需要告诉 CMake 去哪里找 metacar。有两种方式：
-
-**方式一：配置时指定**
-
-```bash
-cmake -B build -DCMAKE_PREFIX_PATH=/path/to/metacar/install
-```
-
-**方式二：使用 FetchContent 直接引入源码**
-
-```cmake
-include(FetchContent)
-FetchContent_Declare(
-  metacar
-  GIT_REPOSITORY <metacar 仓库地址>
-  GIT_TAG master
-)
-FetchContent_MakeAvailable(metacar)
-
-target_link_libraries(your_app PRIVATE metacar::metacar)
 ```
 
 ## 依赖说明
@@ -83,21 +84,4 @@ target_link_libraries(your_app PRIVATE metacar::metacar)
 | Winsock2 (ws2_32) | — | Windows 系统自带 |
 | POSIX sockets | — | Linux 系统自带 |
 
-你**不需要**手动安装任何第三方库。
-
-## 验证安装
-
-创建一个最小测试程序：
-
-```cpp
-#include "metacar/metacar.hpp"
-#include <iostream>
-
-int main() {
-    metacar::SceneAPI api;
-    std::cout << "MetaCar API ready.\n";
-    return 0;
-}
-```
-
-如果编译链接通过，说明安装成功。
+你**不需要**手动安装任何第三方库，CMake 会自动处理一切。
