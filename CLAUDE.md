@@ -64,3 +64,5 @@ cmake --build --preset linux-debug
 - 修改 models.hpp 中的结构体时，必须同步更新 models.cpp 中对应的 to_json/from_json
 - 公共 API 的变更需考虑对示例仓库 (`autodrive_examples_cpp`) 的影响
 - 本库不依赖 OpenCV；摄像头帧以原始字节返回
+- 内部日志统一使用 `detail::log(LogLevel::XXX, msg)`，不要直接用 `std::cout`/`std::cerr`
+- 枚举值命名避开 Windows 宏（`ERROR`、`DEBUG` 等），否则会被预处理器展开导致编译失败

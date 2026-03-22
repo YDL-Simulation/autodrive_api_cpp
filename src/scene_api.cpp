@@ -2,8 +2,9 @@
 
 #include <filesystem>
 #include <fstream>
-#include <iostream>
 #include <sstream>
+
+#include "metacar/logging.hpp"
 
 namespace metacar {
 
@@ -74,7 +75,7 @@ std::optional<SimCarMsg> SceneAPI::step() {
 
     if (code == 5) {
       // Scene ended
-      std::cout << "[metacar] Scene ended" << std::endl;
+      detail::log(LogLevel::INFO, "Scene ended");
       running_ = false;
       model_socket_.close();
       streaming_socket_.close();
@@ -91,11 +92,11 @@ std::optional<SimCarMsg> SceneAPI::step() {
     }
 
     // Unexpected code
-    std::cerr << "[metacar] Unexpected message code: " << code << std::endl;
+    detail::log(LogLevel::WARN, "Unexpected message code: " + std::to_string(code));
     return std::nullopt;
 
   } catch (const ConnectionClosedError &) {
-    std::cerr << "[metacar] Connection closed, exiting" << std::endl;
+    detail::log(LogLevel::ERR, "Connection closed, exiting");
     running_ = false;
     model_socket_.close();
     streaming_socket_.close();
@@ -113,12 +114,12 @@ void SceneAPI::set_vehicle_control(const VehicleControl &vc,
 
 void SceneAPI::retry_level() {
   ++move_to_start_;
-  std::cout << "[metacar] Retry level" << std::endl;
+  detail::log(LogLevel::INFO, "Retry level");
 }
 
 void SceneAPI::skip_level() {
   ++move_to_end_;
-  std::cout << "[metacar] Skip level" << std::endl;
+  detail::log(LogLevel::INFO, "Skip level");
 }
 
 bool SceneAPI::is_running() const { return running_; }

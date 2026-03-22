@@ -1,7 +1,8 @@
 #include "metacar/sockets.hpp"
 
+#include "metacar/logging.hpp"
+
 #include <cstring>
-#include <iostream>
 #include <stdexcept>
 
 #ifdef _WIN32
@@ -71,7 +72,7 @@ RawSocket::RawSocket(const std::string &host, int port) : host_(host), port_(por
     throw std::runtime_error("Failed to listen on " + host_ + ":" + std::to_string(port_));
   }
 
-  std::cout << "[metacar] Listening on " << host_ << ":" << port_ << std::endl;
+  detail::log(LogLevel::INFO, "Listening on " + host_ + ":" + std::to_string(port_));
 }
 
 RawSocket::~RawSocket() { close(); }
@@ -95,8 +96,8 @@ void RawSocket::accept() {
 
   char addr_str[INET_ADDRSTRLEN];
   inet_ntop(AF_INET, &client_addr.sin_addr, addr_str, sizeof(addr_str));
-  std::cout << "[metacar] " << host_ << ":" << port_ << " connected to " << addr_str << ":"
-            << ntohs(client_addr.sin_port) << std::endl;
+  detail::log(LogLevel::INFO, std::string(host_) + ":" + std::to_string(port_) + " connected to " +
+                                  addr_str + ":" + std::to_string(ntohs(client_addr.sin_port)));
 }
 
 void RawSocket::send(const std::string &data) {

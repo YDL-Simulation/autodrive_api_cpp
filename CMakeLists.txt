@@ -16,6 +16,7 @@ FetchContent_MakeAvailable(nlohmann_json)
 # ── Library target ────────────────────────────────────────────────────────────
 add_library(metacar STATIC
     src/geometry.cpp
+    src/logging.cpp
     src/models.cpp
     src/sockets.cpp
     src/scene_api.cpp
