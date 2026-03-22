@@ -23,9 +23,16 @@ src/
 
 ## 构建
 
+项目提供了 CMakePresets.json，推荐使用 preset 构建（需在 VS Developer Terminal 中执行）：
+
 ```bash
-cmake -B build
-cmake --build build
+# Windows (VS Developer Terminal)
+cmake --preset win-debug
+cmake --build --preset win-debug
+
+# Linux
+cmake --preset linux-debug
+cmake --build --preset linux-debug
 ```
 
 构建产物为静态库。下游通过 `find_package(metacar)` + `target_link_libraries(app PRIVATE metacar::metacar)` 使用。
