@@ -10,6 +10,11 @@ out/
 *.user
 *.suo
 
+# Tools
+.claude/
+.playwright/
+site/
+
 # Compiled
 *.o
 *.obj

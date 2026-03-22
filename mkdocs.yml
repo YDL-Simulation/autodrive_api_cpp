@@ -1,0 +1,70 @@
+site_name: MetaCar C++ API 文档
+site_description: 自动驾驶仿真 C++ API 库文档
+repo_url: ""
+
+theme:
+  name: material
+  language: zh
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: 切换到暗色模式
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: 切换到亮色模式
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - content.code.copy
+    - search.suggest
+    - search.highlight
+    - toc.follow
+
+plugins:
+  - search:
+      separator: '[\s\-\.]+'
+      lang:
+        - zh
+        - en
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - 首页: index.md
+  - 环境搭建: getting-started.md
+  - 快速入门: quickstart.md
+  - API 参考:
+      - SceneAPI: api/scene_api.md
+      - 车辆控制: api/vehicle_control.md
+      - 仿真动态数据: api/sim_car_msg.md
+      - 场景静态数据: api/scene_static.md
+      - 几何类型: api/geometry.md
+      - 枚举类型: api/enums.md
+      - 日志: api/logging.md
+  - 进阶:
+      - VLA 场景: advanced/vla.md
