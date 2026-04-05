@@ -21,9 +21,10 @@ int main() {
     metacar::SceneAPI api;
     api.connect();  // 等待仿真器连接
 
-    while (auto msg = api.step()) {  // 获取每帧数据
+    while (auto result = api.step()) {  // 获取每帧数据
+        auto &[msg, frames] = *result;
         // 读取车辆状态
-        double speed = msg->main_vehicle.speed;
+        double speed = msg.main_vehicle.speed;
 
         // 发送控制指令
         metacar::VehicleControl ctrl;

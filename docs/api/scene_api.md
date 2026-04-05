@@ -72,28 +72,36 @@ for (const auto &road : data.roads) {
 ### step()
 
 ```cpp
-std::optional<SimCarMsg> step();
+std::optional<StepResult> step();
 ```
 
-获取下一帧仿真数据。这是主循环的核心方法。
+获取下一帧仿真数据和摄像头图像。这是主循环的核心方法。
 
 **返回值：**
 
-- `std::optional<SimCarMsg>` — 包含当前帧的所有动态数据
+- `std::optional<StepResult>` — 包含当前帧的动态数据和摄像头图像
 - 返回 `std::nullopt` 表示仿真结束
+
+`StepResult` 包含两个字段：
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `sim_car_msg` | `SimCarMsg` | 当前帧的所有动态数据 |
+| `frames` | `std::vector<CameraFrame>` | 各摄像头的 JPEG 图像数据 |
 
 **行为说明：**
 
 - 首次调用时，会自动向仿真器发送就绪信号
-- 每次调用会接收一帧完整的仿真数据（位姿、障碍物、交通灯等）
+- 每次调用会接收一帧完整的仿真数据（位姿、障碍物、交通灯等）和摄像头图像
 - 仿真器发送结束信号后，返回 `std::nullopt`，此后 `is_running()` 为 `false`
 
 ```cpp
-while (auto msg = api.step()) {
-    double speed = msg->main_vehicle.speed;
-    double x = msg->pose_gnss.pos_x;
-    double y = msg->pose_gnss.pos_y;
-    // ...
+while (auto result = api.step()) {
+    auto &[msg, frames] = *result;
+    double speed = msg.main_vehicle.speed;
+    double x = msg.pose_gnss.pos_x;
+    double y = msg.pose_gnss.pos_y;
+    // frames[i].data 为 JPEG 编码的原始字节
 }
 // 循环结束，仿真已结束
 ```
@@ -199,7 +207,7 @@ class ConnectionClosedError : public std::runtime_error;
 ```cpp
 try {
     api.connect();
-    while (auto msg = api.step()) {
+    while (auto result = api.step()) {
         // ...
     }
 } catch (const metacar::ConnectionClosedError &e) {

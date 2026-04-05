@@ -1,6 +1,6 @@
 # 仿真动态数据
 
-每次调用 `SceneAPI::step()` 返回的 `SimCarMsg` 包含当前帧的所有动态信息。
+每次调用 `SceneAPI::step()` 返回 `StepResult`，其中包含当前帧的动态信息 (`SimCarMsg`) 和摄像头图像 (`CameraFrame`)。
 
 ## 单位说明
 
@@ -20,9 +20,10 @@
 仿真每帧返回的核心数据结构。
 
 ```cpp
-while (auto msg = api.step()) {
-    // msg 的类型为 std::optional<SimCarMsg>
-    // 使用 msg-> 访问各字段
+while (auto result = api.step()) {
+    // result 的类型为 std::optional<StepResult>
+    auto &[msg, frames] = *result;
+    // msg: SimCarMsg，frames: std::vector<CameraFrame>
 }
 ```
 
@@ -55,7 +56,7 @@ while (auto msg = api.step()) {
 | `ori_z` | `double` | 朝向 Z 分量（偏航角）(rad) |
 
 ```cpp
-const auto &pose = msg->pose_gnss;
+const auto &pose = msg.pose_gnss;
 std::cout << "位置: (" << pose.pos_x << ", " << pose.pos_y << ")\n";
 std::cout << "偏航角: " << pose.ori_z << " rad\n";
 ```
@@ -84,8 +85,8 @@ std::cout << "偏航角: " << pose.ori_z << " rad\n";
 | `headlights_on` | `bool` | 前照灯状态 |
 
 ```cpp
-double speed = msg->main_vehicle.speed;
-double car_length = msg->main_vehicle.length;
+double speed = msg.main_vehicle.speed;
+double car_length = msg.main_vehicle.length;
 ```
 
 ---
@@ -119,8 +120,29 @@ double car_length = msg->main_vehicle.length;
 | `ori_y` | `double` | 绕 Y 轴旋转 (rad) |
 | `ori_z` | `double` | 绕 Z 轴旋转 (rad) |
 
+---
+
+## CameraFrame
+
+`StepResult::frames` 中的每个元素对应一个自车摄像头的图像数据。
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `id` | `std::string` | 对应 `CameraInfo::id` |
+| `data` | `std::vector<uint8_t>` | JPEG 编码的原始字节 |
+
+```cpp
+while (auto result = api.step()) {
+    auto &[msg, frames] = *result;
+    for (const auto &frame : frames) {
+        // frame.id   — 摄像头 ID
+        // frame.data — JPEG 字节，可写入文件或自行解码
+    }
+}
+```
+
 !!! note "关于摄像头图像"
-    C++ 版 API **不依赖 OpenCV**，摄像头帧以原始字节返回。当前 `SceneAPI::step()` 会自动接收并丢弃摄像头帧数据。如需处理图像，可自行解码原始字节。
+    C++ 版 API **不依赖 OpenCV**，摄像头图像以 JPEG 编码的原始字节返回。如需处理图像，可使用 OpenCV、stb_image 等库自行解码。
 
 ---
 
@@ -147,7 +169,7 @@ double car_length = msg->main_vehicle.length;
 | `extra_info` | `std::optional<std::string>` | 附加信息（可选） |
 
 ```cpp
-for (const auto &obs : msg->obstacles) {
+for (const auto &obs : msg.obstacles) {
     if (obs.type == metacar::ObstacleType::CAR) {
         double dist = std::sqrt(
             std::pow(obs.pos_x - pose.pos_x, 2) +
@@ -186,7 +208,7 @@ for (const auto &obs : msg->obstacles) {
 | `straight_remaining_time` | `double` | 直行灯剩余时间 (s) |
 
 ```cpp
-for (const auto &group : msg->traffic_light_groups) {
+for (const auto &group : msg.traffic_light_groups) {
     for (const auto &light : group.traffic_lights) {
         if (light.straight_state == metacar::TrafficLightState::RED) {
             std::cout << "红灯! 剩余 " << light.straight_remaining_time << " s\n";
@@ -211,7 +233,7 @@ for (const auto &group : msg->traffic_light_groups) {
 | `end_point` | `std::optional<Vector3>` | 终点位置（可选） |
 
 ```cpp
-const auto &status = msg->scene_status;
+const auto &status = msg.scene_status;
 double remaining = status.time_limit - status.used_time;
 std::cout << "剩余时间: " << remaining << " s\n";
 ```

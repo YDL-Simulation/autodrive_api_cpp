@@ -36,9 +36,10 @@ const auto &static_data = api.get_scene_static_data();
 ### 4. 进入主循环
 
 ```cpp
-while (auto msg = api.step()) {
-    // msg 是 std::optional<SimCarMsg>
-    // 包含车辆状态、传感器数据、障碍物信息等
+while (auto result = api.step()) {
+    auto &[msg, frames] = *result;
+    // msg: SimCarMsg — 包含车辆状态、传感器数据、障碍物信息等
+    // frames: std::vector<CameraFrame> — 各摄像头的 JPEG 图像数据
 
     // 创建控制命令
     metacar::VehicleControl ctrl;
@@ -74,10 +75,11 @@ int main() {
     std::cout << "路线点数量: " << static_data.route.size() << "\n";
 
     // 主循环
-    while (auto msg = api.step()) {
+    while (auto result = api.step()) {
+        auto &[msg, frames] = *result;
         // 读取车辆位姿
-        const auto &pose = msg->pose_gnss;
-        double speed = msg->main_vehicle.speed;
+        const auto &pose = msg.pose_gnss;
+        double speed = msg.main_vehicle.speed;
 
         std::cout << std::fixed << std::setprecision(2)
                   << "位置=(" << pose.pos_x << ", " << pose.pos_y << ")  "

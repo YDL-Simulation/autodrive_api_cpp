@@ -133,7 +133,8 @@ VLA 场景需要提交的感知结果通过 `VLAExtensionOutput` 传递。
 ```cpp
 const auto &data = api.get_scene_static_data();
 
-while (auto msg = api.step()) {
+while (auto result = api.step()) {
+    auto &[msg, frames] = *result;
     metacar::VehicleControl ctrl;
     ctrl.gear = metacar::GearMode::DRIVE;
     ctrl.throttle = 0.2;

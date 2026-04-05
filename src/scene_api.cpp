@@ -59,7 +59,7 @@ void SceneAPI::connect() {
 
 const SceneStaticData &SceneAPI::get_scene_static_data() const { return scene_static_data_; }
 
-std::optional<SimCarMsg> SceneAPI::step() {
+std::optional<StepResult> SceneAPI::step() {
   if (!running_)
     return std::nullopt;
 
@@ -84,11 +84,12 @@ std::optional<SimCarMsg> SceneAPI::step() {
 
     if (code == 3) {
       Code3 msg = j.get<Code3>();
-      // Consume streaming frames for each ego camera (discard bytes since no OpenCV)
-      for (size_t i = 0; i < msg.sim_car_msg.sensor.ego_rgb_cams.size(); ++i) {
-        streaming_socket_.receive_frame(); // discard
+      std::vector<CameraFrame> frames;
+      for (const auto &cam : msg.sim_car_msg.sensor.ego_rgb_cams) {
+        frames.push_back(CameraFrame{.id = cam.id, .data = streaming_socket_.receive_frame()});
       }
-      return msg.sim_car_msg;
+      return StepResult{.sim_car_msg = std::move(msg.sim_car_msg),
+                         .frames = std::move(frames)};
     }
 
     // Unexpected code

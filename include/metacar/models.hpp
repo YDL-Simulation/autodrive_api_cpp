@@ -354,6 +354,11 @@ struct SensorInfo {
 void to_json(nlohmann::json &j, const SensorInfo &v);
 void from_json(const nlohmann::json &j, SensorInfo &v);
 
+struct CameraFrame {
+  std::string id;            ///< Corresponding CameraInfo::id.
+  std::vector<uint8_t> data; ///< Raw JPEG-encoded bytes.
+};
+
 struct ObstacleInfo {
   int id = 0;
   ObstacleType type = ObstacleType::UNKNOWN;
@@ -420,6 +425,11 @@ struct SimCarMsg {
 
 void to_json(nlohmann::json &j, const SimCarMsg &v);
 void from_json(const nlohmann::json &j, SimCarMsg &v);
+
+struct StepResult {
+  SimCarMsg sim_car_msg;
+  std::vector<CameraFrame> frames;
+};
 
 // ── Vehicle control models ───────────────────────────────────────────────────
 

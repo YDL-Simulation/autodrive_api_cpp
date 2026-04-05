@@ -23,10 +23,10 @@ public:
   /// Get the scene static data (available after connect()).
   const SceneStaticData &get_scene_static_data() const;
 
-  /// Single-step: get the next simulation frame.
+  /// Single-step: get the next simulation frame and camera images.
   /// Returns std::nullopt when the scene ends or the connection closes.
   /// On the first call, sends Code2 (ready signal) automatically.
-  std::optional<SimCarMsg> step();
+  std::optional<StepResult> step();
 
   /// Send vehicle control commands to the simulation.
   void set_vehicle_control(const VehicleControl &vc,
